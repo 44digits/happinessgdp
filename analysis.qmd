@@ -1,0 +1,47 @@
+---
+title: "Elections & Longitivity"
+format: html
+
+---
+
+```{r}
+#| label: setup
+#| message: false
+library(tidyverse)
+library(primer.data)
+library(brms)
+library(tidybayes)
+library(gtsummary)
+
+x <- governors |> 
+  select(death_age, party, election_age, win_margin, sex) |> 
+  mutate(treatment = ifelse(win_margin > 0, "win", "lose")) |> 
+  filter(abs(win_margin) < 5) 
+
+fit_elec <- brm(formula = death_age ~ treatment + party + election_age + win_margin+ sex,
+             data = x,
+             family = gaussian(),
+             silent = 2,
+             refresh = 0,
+             seed = 9)
+
+fit_elec2 <- brm(formula = death_age ~ treatment + party + win_margin,
+             data = x,
+             family = gaussian(),
+             silent = 2,
+             refresh = 0,
+             seed = 9)
+```
+
+```{r}
+fit_elec2 |>
+  tbl_regression()
+```
+
+```{r}
+ndata <- tibble(expand_grid(treatment = c("win", "lose"), 
+                            party = c("Democrat", "Republican", "Third party"),
+                            win_margin = 0))
+
+```
+
