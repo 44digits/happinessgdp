@@ -1,0 +1,52 @@
+---
+execute: 
+  echo: false
+  message: false
+  warning: false
+  error: false
+---
+
+## Model
+### Definition
+$$ happiness_i =  \beta_0 + \beta_1 log(gdp_i) + \beta_2 corruption_i + 
+\\ \beta_3 life\_expectancy_i  + \epsilon_i $$
+
+
+### Parameters
+```{r}
+#| label: generatemodel
+#| results: 'hide'
+#| cache: true
+
+library(readxl)
+library(tidyverse)
+library(primer.data)
+library(brms)
+library(tidybayes)
+library(gtsummary)
+
+x <- read_excel("data/DataForTable2.1.xls") |>
+  drop_na() |>
+  mutate(countryname = `Country name`,
+         happiness = `Life Ladder`,
+         gdplog = `Log GDP per capita`,
+         corruption = `Perceptions of corruption`,
+         lifeexpectancy = `Healthy life expectancy at birth`,
+         .keep = "none")
+
+fit_happiness <- brm(formula = happiness ~ gdplog + corruption + lifeexpectancy,
+                      data = x,
+                      family = gaussian(),
+                      silent = 2,
+                      refresh = 0,
+                      seed = 9)
+
+```
+
+```{r}
+#| label: parameters
+
+tbl_regression(fit_happiness)
+
+```
+
