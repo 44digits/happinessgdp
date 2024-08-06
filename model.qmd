@@ -46,6 +46,7 @@ fit_happiness <- brm(formula = happiness ~ gdplog + corruption + lifeexpectancy,
 ```{r}
 #| label: parameters
 
+library(gtsummary)
 tbl_regression(fit_happiness)
 
 ```
