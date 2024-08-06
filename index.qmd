@@ -1,0 +1,80 @@
+---
+execute: 
+  echo: false
+  message: false
+  warning: false
+  error: false
+---
+# Happiness and Money
+
+```{r}
+#| label: setup
+
+library(readxl)
+library(tidyverse)
+library(primer.data)
+library(brms)
+library(tidybayes)
+library(gtsummary)
+```
+```{r}
+#| label: dataprep
+#| cache: true
+#| error: false
+#| message: false
+#| warning: false
+
+x <- read_excel("data/DataForTable2.1.xls") |>
+  drop_na() |>
+  mutate(country_name = `Country name`,
+         happiness = `Life Ladder`,
+         gdp_log = `Log GDP per capita`,
+         corruption = `Perceptions of corruption`,
+         life_expectancy = `Healthy life expectancy at birth`,
+         .keep = "none")
+```
+
+```{r}
+#| label: model
+#| cache: true
+#| error: false
+#| message: false
+#| warning: false
+#| results: 'hide'
+
+fit_happiness <- brm(formula = happiness ~ gdp_log + corruption + life_expectancy,
+                      data = x,
+                      family = gaussian(),
+                      silent = 2,
+                      refresh = 0,
+                      seed = 9)
+
+```
+```{r}
+#| label: predict
+
+ndata = tibble(gdp_log = seq(5, 12, .1),
+               life_expectancy = 65,
+               corruption = 0.7)
+
+predict(fit_happiness, ndata) |>
+  as_tibble() |>
+  bind_cols(ndata) |>
+  ggplot(aes(x=gdp_log, y=Estimate)) +
+    geom_line(color="blue", size=2)+
+    labs(title = "Modeling Happiness with respect to GDP",
+         subtitle = "More money relates to greater happiness",
+         x = "log(GDP)",
+         y = "Predicted happiness",
+         caption = "World Happiness Report, 2007-2023") +
+    theme_classic()
+  
+```
+
+
+
+## Summary
+Does happiness depend on money?
+Using data from the World Happiness Report, from 2004 to 2023, we seek to find a relationship between happiness and other socio-economic factors including GDP per capita.  
+We modeled happiness as a function of GDP, corruption, and life expectancy for all countries represented in the Report.
+A country's GDP per capital has a strong positive relationship to the country's happiness.
